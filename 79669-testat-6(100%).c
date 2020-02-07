@@ -1,4 +1,3 @@
-//Abdullah Yildiz 79669, Hüseyin Selcuk 79375, Muhammed Demir 70727
 #include <stdio.h>
 #include "testat-6.h"
 
