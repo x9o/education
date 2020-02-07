@@ -1,4 +1,3 @@
-//Abdullah Yildiz 79669, Nikolas Banea 79359, Muhammed Demir 70727
 #include <stdio.h>
 #include <string.h>
 
