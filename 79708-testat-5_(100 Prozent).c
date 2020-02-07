@@ -1,5 +1,3 @@
-//Testat von Baeuml Dominik (80043), Baeuml Julian (79708) und Waldsauer Andreas (79874)
-
 #include <stdio.h>
 #include <string.h>
 
@@ -7,8 +5,8 @@ void skytale (char*, int ,char*);
 
 int main() {
 	char s1[1000] = "DIESERKLARTEXTISTJETZTZUVERSCHLUESSELN12",
-	s2[1000]="***bereits*verwendete*zeichenkette*mit*inhalt***", // Verschlüsseln hier hinein
-	s3[1000]; // Entschlüsseln in diese Variable
+	s2[1000]="***bereits*verwendete*zeichenkette*mit*inhalt***", // VerschlÃ¼sseln hier hinein
+	s3[1000]; // EntschlÃ¼sseln in diese Variable
     int n = 20, l = strlen(s1);
 	printf("%s\n", s1);
     printf("Laenge: %d\n", l);
