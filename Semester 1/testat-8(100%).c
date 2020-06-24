@@ -29,7 +29,6 @@ int main(int argc, char* argv[]){
             fclose(f);
         }
    //} 
-   //Probleme: Stern wird nicht gefunden
     printf("%d Treffer\n", count);
     return 0;
 }
