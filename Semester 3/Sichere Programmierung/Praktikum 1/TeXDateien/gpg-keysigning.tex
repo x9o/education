@@ -1,0 +1,30 @@
+%
+% Übersetzen mit dem Befehl: xelatex gpg-keysigning.tex
+%
+\documentclass[12pt]{article}
+\pagestyle{empty}
+
+\usepackage{polyglossia}
+\setdefaultlanguage{german}
+\usepackage[a4paper,vmargin=30mm,hmargin=25mm]{geometry}
+\usepackage{fontspec}
+
+\begin{document}
+\begin{center}
+  \renewcommand{\arraystretch}{1.2}
+  \begin{tabular}{|rl|} \hline %
+    \multicolumn{2}{|c|}{\emph{\large GPG-Fingerprint}} \\  %
+    \multicolumn{2}{|c|}{Vorlesung Beispielvorlesung} \\ \hline %
+    Name: & Abdullah Yildiz \\ %
+    Matrikelnummer: & 79669 \\ %
+    E-Mail: & \texttt{abdullah.yildiz@studmail.htw-aalen.de} \\ %
+    Fingerprint: & \texttt{3320 25D4 4DD1 2995 B88C  6E7A C91F C91F 9883 CCEA} \\ \hline%
+  \end{tabular}
+\end{center}
+\end{document}
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-engine: xetex
+%%% TeX-master: t
+%%% End: 

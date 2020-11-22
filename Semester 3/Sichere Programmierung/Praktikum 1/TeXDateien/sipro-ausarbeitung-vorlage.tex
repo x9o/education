@@ -1,0 +1,148 @@
+\documentclass[12pt]{article}
+%die Pakete werden hier durch den Include-Befehl separat eingelesen
+\include{Pakete}
+
+\title{\textbf{Titel der Arbeit}}
+
+\setlength{\parindent}{0cm} %keine Einrückung
+\linespread{1.5} 
+
+
+
+\begin{document}
+\newpage
+Abdullah Yildiz
+Nils Klein
+
+\include{- Sichere Programmierung Praktikum 1}
+\begin{spacing}{}
+\setcounter{page}{2}
+\tableofcontents
+\end{spacing}
+
+\newpage
+\begin{spacing}{}
+\section{Kryptoanalyse mit Python}
+\subsection{Aufgabe 1}
+In der ersten Aufgabe wird eine konvertierung der User Eingabe verlangt.\\
+Der einzugebene String kann aus einem oder mehreren Strings bestehen. Während Zahlen und Sonderzeichen nicht beachtet werden, wird der Input (wenn erfolgreich eingegeben) die Strings durch die Funktion "decode" in Zahlen konvertieren und als Liste mit einem return ausgeben. Die auszugebenen Zahlen spielen hierbei eine wichtige Rolle. Das Alphabet soll mit den Zahlen 0-25 dargestellt werden, dass mittels einer Funktion in Python ("dict") interpretiert werden konnte.
+
+\subsection{Aufgabe 2}
+In der zweiten Aufgabe sollen die Eingaben nun als Zahlen erfolgen, interpretiert werden und als String übersetzt werden.\\
+Wird z.B. die Zahlenfolge [7, 0, 11, 11, 14, 22, 4, 11, 19] eingegeben, wird für jede Zahl die ganze Liste iteriert und mit dem Wörterbuch ("dict") überprüft, ob der Buchstabe interpretiert werden kann. Falls ein zugehöriger Wert gefunden wurde, wird dieser in eine neue Liste "encoded\textunderscore input" gespeichert.\\ 
+Sobald alle Werte einmal überprüft wurden, wird die Liste mit einem return ausgegeben. 
+
+\subsection{Aufgabe 3}
+
+In der nächsten Aufgabe soll ein Wörterbuch "key\textunderscore table" für alle erlaubten Werte des Teilschlüssels a und das zugehörige Inverse Element ertellt werden.\\
+Da die Werte bereits angegeben sind, wurde zu jedem Wert von "a" das inverse Element hinzugefügt. Bsp.:\\ 
+key\textunderscore table = \{
+\begin{tabbing}
+Links \= Mitte \= Rechts \kill
+\> 1: 1,\\
+\> 3: 9,\\
+\> 5: 21,\\
+\> ..\\
+\> ..\\
+\}
+\end{tabbing}
+
+\subsection{Aufgabe 4}
+
+Der String plain\textunderscore text wird in eine neue Liste geschrieben und gleichzeitig mit der Funktion "decode" in Zahlen konvertiert. Die Liste wird in der Variable "orig\textunderscore input" gespeichert.\\
+Mithilfe der Testfunktion "broken\textunderscore key(a, b)" wird geprüft ob der Schlüssel(a, b) fehlerhaft oder gültig ist. Die Funktion prüft ob die Werte der Schlüssel a nicht in der "Key\textunderscore table" oder b nicht innerhalb des Ranges 26 ist. Bei "True" ist der Schlüssel fehlerhaft, und es wird ein leerer String zurück gegeben.\\
+Als nächstes wird in einer for-Schleife für jedes Element von orig\textunderscore input geprüft ob es Integer Werte sind.\\
+
+Die Verschlüsselung erfolgt durch die folgende Formel: 
+\begin{itemize}
+\item return ((a * x) + b) mod 26
+\end{itemize}
+Die Ergebnisse aus der Verschlüsselung werden in eine neue leere Liste "y" gespeichert. Da in der Aufgabenstellung die Ausgabe als Großbuchstaben gefordert ist, müssen die Werte durch ein zuvor erstelltes Wörterbuch "lowercaseToUppercase" von klein Buchstaben zu Großbuchstaben umgewandelt werden. Die Großbuchstaben werden dafür in die zuvor erstelle Liste "encrypted\textunderscore input" gespeichert. Als letztes wird die Liste mithilfe der join Methode komplette ausgegeben:
+\begin{itemize}
+\item return "".join(encrypted\textunderscore input)
+\end{itemize}
+
+\subsection{Aufgabe 5}
+
+Bei Eingabe von a=11, b=23 und plain\textunderscore text=OVYNTWXAY soll durch eine Entschlüsselung folgender Output entstehen: \\
+\textbf{"botschaft"}\\
+Auch hier wird wie in Aufgabe 4 eine Liste "orig\textunderscore input" benötigt, die den plain\textunderscore text als Liste speichert. Nach überprüfung der Schlüssel a und b durch die Hilfsfunktion \textbf{broken\textunderscore key} wird bei "True" dass Programm mit einem leeren String beendet, oder es wird bei "False" fortgesetzt.\\
+Zusätzlich wird hier eine Liste für die Inversen Elemente von a benötigt. Dafür wird eine neue List erstellt "a\textunderscore inv".\\
+Als nächstes muss für jedes Element von plain\textunderscore text die Entschlüsselung durchgeführt werden. Davor wird geprüft ob jeder Wert ein Integer ist.??????????????\\
+Die Entschüsselung erfolgt durhc die folgende Formel:
+\begin{itemize}
+\item return ((y - b) * a\textunderscore inv mod 26).
+\end{itemize}
+Die Ergebnisse aus der Entschlüsselung werden in eine neue leere Liste "tmp" gespeichert. Als letztes wird die Liste mithilfe der join Methode 
+komplette ausgegeben:
+\begin{itemize}
+\item return "".join(decrypted\textunderscore input)
+\end{itemize}
+
+\subsection{Aufgabe 6}
+
+a)\\
+Es soll der Klartext \textbf{"strenggeheim"} mit dem Schlüssel \textbf{"db"} verschlüsselt werden.\\
+Dafür kann in der main() Funktion ein print befehel verwendet werden:
+\begin{itemize}"a_inv".\\
+Als nächstes muss für jedes Element von plain\textunderscore text die Entschlüsselung durchgeführt werden. Davor wird geprüft ob jeder Wert ein Integer ist.??????????????\
+Die Entschüsselung erfolgt durhc die folgende Formel: ((y -b) * a_inv mod 26). Die Ergebnisse aus der Entschlüsselung werden in eine neue leere Liste "tmp" gespeichert.\
+\item print(acEncrypt(3, 1, "strenggeheim")) //die Werte 3 und 1 entsprechen "d" und "b".
+\end{itemize}
+Dieser Befehl wird die Funktion \textbf{acEncrypt} mit zwei Integer Werten und einem String Wert aufrufen.\\
+
+b)\\
+Um den Geheimschlüssel \textbf{IFFYVQMJYFFDQ} mit dem Schlüssel \textbf{pi} zu entschlüsseln kann wie bei 6 a) vorgegangen werden:\\
+\begin{itemize}
+\item print(acDecrypt(15, 8, "IFFYVQMJYFFDQ")) //die Werte 15 und 8 entsprechen "p" und "i".
+\end{itemize}
+
+
+
+\subsection{Aufgabe 7}
+
+Das Skript wurde umbenannt auf \textbf{"aclib.py"}.
+
+
+\subsection{Aufgabe 8}
+
+
+
+
+\subsection{Aufgabe 9}
+
+
+\subsection{Aufgabe 10}
+
+
+\subsection{Aufgabe 11}
+
+
+\subsection{Aufgabe 12}
+
+
+\subsection{Aufgabe 13}
+
+
+\subsection{Aufgabe 14}
+
+
+\subsection{Aufgabe 15}
+
+
+\subsection{Aufgabe 16}
+
+
+\subsection{Aufgabe 17}
+
+
+
+
+\section{Nächster Punkt ???}
+
+
+\newpage
+\clearpage
+\setcounter{page}{3}
+
+\end{document}
