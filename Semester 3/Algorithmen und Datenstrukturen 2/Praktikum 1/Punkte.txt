@@ -1,0 +1,18 @@
+Bewertung: 12 von 20 Punkten
+
+Kommentare:
+    put, get oder remove fangen null nicht (oder nicht korrekt) ab. (-1)
+
+    Die Tests key.equals("") und val.equals("") sind unsinnig und unnötig. (-1)
+    (Entfernt.)
+
+    remove bei Verkettung wirft NullPointerException. (-3)
+    (Der Test (var.key != null) muss vor dem Aufruf von equals stehen!)
+    (Korrigiert.)
+
+    Der Resultatwert von put bei Verkettung ist teilweise falsch. (-1)
+    (Korrigiert.)
+
+    Die Methode hilfsfunc bei offener Adressierung liefert auch für
+    gelöschte Objekte "vorhanden" zurück.
+    Damit funktioniert get bei offener Adressierung nicht immer korrekt. (-3)
