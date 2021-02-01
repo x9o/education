@@ -1,0 +1,637 @@
+\documentclass[12pt]{article}
+\parindent0em
+\parskip 1ex plus 0.4ex minus 0.4ex
+
+\usepackage[a4paper,vmargin=30mm,hmargin=25mm]{geometry}
+\usepackage{polyglossia}
+\setdefaultlanguage{german}
+\usepackage{fontspec}
+\usepackage{lipsum}
+\usepackage{xcolor}
+\usepackage{listings}
+
+\definecolor{lstbackground}{rgb}{0.95,0.95,1}      % hellgruener Rahmen
+\lstset{language=Python}
+
+\lstset{
+  basicstyle=\small\ttfamily,
+  backgroundcolor=\color{lstbackground},
+  keywordstyle=\bfseries\ttfamily\color{blue},
+  stringstyle=\color{orange!50!black}\ttfamily,
+  commentstyle=\color{gray}\ttfamily,
+  showstringspaces=false,
+  flexiblecolumns=false,
+  tabsize=4,
+  numbers=left,
+  numberstyle=\tiny,
+  numberblanklines=true,
+  stepnumber=1,
+  numbersep=10pt,
+  xleftmargin=15pt,
+  literate=%
+  {Ö}{{\"O}}1
+  {Ä}{{\"A}}1
+  {Ü}{{\"U}}1
+  {ß}{{\ss}}1
+  {ü}{{\"u}}1
+  {ä}{{\"a}}1
+  {ö}{{\"o}}1
+  {~}{{\textasciitilde}}1
+}
+
+\begin{document}
+
+\begin{center}
+  \textbf{\LARGE Sichere Programmierung} \\[1ex]%
+  \textbf{\Large Praktikum 4}\\[1ex] %
+  \textbf{\Large Kryptographie mit Java}\\[3ex] %
+  Nils Klein \\ %
+  (79373) \\[1ex] %
+  Alexander Krause \\ %
+  (79878) \\[1ex] %
+  Abdullah Yildiz \\ %
+  (79669) \\[1ex] %
+  Dozentin: Corina Hampel \\%
+  
+\end{center}
+
+
+\newpage
+\setcounter{page}{2}
+\tableofcontents
+\newpage
+
+\section{Teil 1: Kryptographische Hashfunktion}
+\subsection{Ablauf und Erklärung}
+Durch die Klasse MessageDigest wird für ein Text eine Prüfsumme nach SHA-256 berechnet. Die berechnete Prüfsumme wird anschließend mithilfe einer Methode in Hexadezimale Zahlen konvertiert. Zusätzlich wird die Prüfsumme mit einem Offset von zwei Formatiert. Das bedeutet, nach jedem zwei'ten Buchstaben wird ein Leerzeichen eingefügt. Die letzte Funktion soll eine Überprüfung eines Textes und der Prüfsumme durchführen. Hierfür wird ein Text und eine bekannte Prüfsumme benötigt. Für den übergebenen Text berechnet das Programm die Prüfsumme aus, und prüft ob es der übergebenen Prüfsumme entspricht.
+
+\subsection{Methode - sha256()}
+Um eine Prüfsumme zu berechnen, muss ein MessageDigest Objekt (hier "md") erstellt und initialisiert werden. Die Initialisierung geschieht im öffentlichen Konstruktor mit dem Initialwert "null".
+\begin{lstlisting}
+this.md = null;
+\end{lstlisting}	
+Das Objekt \textbf{md} weiß zunächst noch nicht welchen Algorithmus er verwenden soll. Durch \textbf{MessageDigest.getInstance("")} kann der gewünschte Algorithmus verwendet werden. Es sind z.B. folgende Algorithmen verwendbar: MD5, SHA-1, SHA-256. In unserem Fall wird SHA-256 benötigt. Die Instanz von \textbf{md} muss in einem Try-Catch-Block stattfinden. Es könnte sonst zu einem Fehler führen der das Programm abstürzen lässt. Speziell muss der Fall abgefangen werden, falls der Algorithmus \textbf{SHA256} nicht verfügbar wäre:
+\begin{lstlisting}
+try {
+	this.md = MessageDigest.getInstance("SHA-256");
+} catch (NoSuchAlgorithmException e){
+	System.out.println("Algorithmus SHA-256 nicht vorhanden!");
+}
+\end{lstlisting}
+\newpage
+
+\subsection{Methode - toHexString(byte[] data , int offset)}
+Die Methode \textbf{toHexString} erwartet zwei Übergabeparameter. Der erste Parameter ist die zuvor berechnete Prüfsumme in einem Byte-Array. Der Zweite Parameter ist optional, bei Verwendung wir entsprechend nach einem Offset ein Leerzeichen eingefügt. Es ist somit nur für die Textformatierung zuständig.\\
+In Zeile 5 wird ein StringBuilder Objekt erstellt. An dieses Objekt können Strings "angehangen" werden.
+\begin{lstlisting}
+public String toHexString(byte[] data , int offset) {
+	if (offset < 0) {
+		offset = 0;
+	}
+	StringBuilder sb = new StringBuilder ();
+\end{lstlisting}	
+Nun müssen alle Bytes in eine Hexadezimale Zahl umgewandelt, und an das Objekt \textbf{sd} angehangen werden. Dies geschieht durch eine for-Schleife. Je nach Offset wird ein Leerzeichen nach einer bestimmten Anzahl an die Hexadezimale Zeichen (hier z.B. nach zwei Zeichen) eingefügt.
+\begin{lstlisting}
+for (int i=0; i<data.length; i++) {
+	sb.append(String.format("%02X", data[i]));
+	if ((offset >0) && (i+1<data.length) && 
+		                            ((i+1) % offset == 0)) {
+		sb.append(" ");
+	}
+ }
+\end{lstlisting}
+Am ende wird das Ergebnis in die lokale Variable \textbf{checksum} abgespeichert. Der Rückgabeparameter ist die Prüfsumme bestehend aus Hexadezimalwerten.
+\begin{lstlisting}
+this.checksum = sb.toString();
+return sb.toString(); //Ausgabe der Hexadezimalen Prüfsumme
+
+\end{lstlisting}
+\newpage
+
+\subsection{Methode - checksum(String text, String b\_checksum)}
+Um eine Überprüfung der Prüfsumme vorzunehmen, wird ein \textbf{Text} und die dazugehörige \textbf{Prüfsumme} vorausgesetzt.\\
+Als erstes berechnet die Funktion für den übergebenen \textbf{Text} eine Prüfsumme. Diese Prüfsumme nennen wir \textbf{a\_checksum}:
+\begin{lstlisting}
+public boolean checksum(String text, String b_checksum) {
+	byte[] digest = this.md.digest(text.getBytes());
+	String a_checksum = toHexString(digest, 2);
+\end{lstlisting}
+Da wir mit der Übergebenen Prüfsumme \textbf{(b\_checksum)} nun \textbf{zwei} Prüfsummen haben, können diese miteinander verglichen werden.
+Sind die Prüfsummen gleich wird "true" zurückgegeben. Andernfalls "false".
+\begin{lstlisting}
+	if(a_checksum.equals(b_checksum)) {
+	    System.out.println
+	       ("Wort entspricht der Übergebenen Prüfsumme: True");
+		return true;
+	}
+	System.out.println
+	    ("Wort entspricht nicht der Übergebenen Prüfsumme: False");
+	return false;
+}
+\end{lstlisting}
+
+\subsection{Methode - main(String[] args)}
+In der Main Methode wird die Instanz der Klasse erstellt, dadurch können die Methoden innerhalb der Klasse verwendet werden.
+\begin{lstlisting}
+sha256 sha256 = new sha256();
+\end{lstlisting}
+Durch den aufruf \textbf{shas256.hilfsfunc(message)} wird der Text: "\textbf{Kryptographie macht Spass!!!}" übergeben und verschlüsselt.
+\begin{lstlisting}
+sha256.hilfsfunc(message);
+\end{lstlisting}
+Durch den Aufruf \textbf{shas256.checksum(message, checksum)} wird der Text:\\
+"\textbf{Kryptographie macht Spass!!!}" mit der dazugehörigen Prüfsumme übergeben und überprüft.
+\begin{lstlisting}
+sha256.checksum(message, checksum);
+\end{lstlisting}
+Wir haben die Nachrichten fest (statisch) in unserem Programm hinterlegt. Jedoch könnte die Eingabe des Textes auch von einem User-Input erfolgen.
+\newpage
+
+\section{Teil 2: Symmetrische Verschlüsselung}
+\subsection{Ablauf und Erklärung}
+Die symmetrische Verschlüsselung kann durch die Klasse \textbf{Cipher} realisiert werden. Es werden \textbf{Schlüssel}, \textbf{Initialisierungsvektor} (für den CBC-Mode) und ein \textbf{Text zum verschlüsseln/entschlüsseln} benötigt. Durch die Klassen SecureRandom und SecretKeySpec kann ein Schlüssel, auch Key genannt, generiert und spezifiziert werden. Für den CBC-Mode der AES-Verschlüsselung wird zusätzlich die Klasse \textbf{IvParameterSpec} benötigt. Der Initalisierungsvektor wird durch die Zufallszahlen des \textbf{SecureRandom} und mit \textbf{IvParameterSpec} spezifiziert. Schlussendlich kann damit ver/entschlüsselt werden.
+
+\subsection{Methode - encrypt(String p\_text, String key)}
+Um einen Text Symmetrisch zu verschlüsseln, wird der zu \textbf{verschlüsselnde Text} und ein \textbf{Schlüssel} (Key) benötigt.
+\begin{lstlisting}
+public String encrypt(String p_text, String key){
+\end{lstlisting}
+Der \textbf{Initialisierungsvektor} wird mit dem Objekt von SecretKeySpec \textbf{"keySpec"} und einem 16-Byte-Array zufällig erzeugt.
+\begin{lstlisting}
+try{
+	SecureRandom random = new SecureRandom ();
+	byte[] iv = new byte[16];
+	
+	random.nextBytes(iv);
+	IvParameterSpec ivSpec = new IvParameterSpec(iv);
+	
+	SecretKeySpec keySpec = 
+	                new SecretKeySpec(key.getBytes (), "AES");
+\end{lstlisting}
+Dem Cipher Objekt muss jetzt eine Instanz zugewiesen werden (mögliche Instanzen: ECB, CBC, CFB, OFB, CTR).
+\begin{lstlisting}
+    //Zuweisung der Instanz (CBC = "AES/CBC/PKCS5Padding")
+	Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+\end{lstlisting}
+Im Anschluss wird das \textbf{Cipher} Objekt mit folgenden Werten initialisiert:
+\begin{lstlisting}
+cipher.init(Cipher.ENCRYPT_MODE , keySpec , ivSpec);
+\end{lstlisting}
+Da wir verschlüsseln möchten wird \textbf{ENCRYPT\_MODE} (Verschlüsselungsmodus) verwendet.
+Als nächstes ist nun die Verschlüsselung des Klartextes dran. Durch folgenden Befehl wird der Klartext in Bytes umgewandelt und in ein Byte-Array gespeichert:
+\begin{lstlisting}
+byte[] cipherText = cipher.doFinal(p_text.getBytes());
+\end{lstlisting}
+\newpage
+
+Nun muss der Initalisierungsvektor zusammen mit dem Geheimtext in einem Byte-Array gespeichert und als Base64 String kodiert werden. Hierfür wird ein ByteArrayOutputStream Objekt \textbf{"os"} erstellt.
+\begin{lstlisting}
+ByteArrayOutputStream os = new ByteArrayOutputStream ();
+\end{lstlisting}
+Die Bytes werden nun in das Objekt \textbf{"os"} geschrieben:
+\begin{lstlisting}
+os.write(iv);
+os.write(cipherText);
+\end{lstlisting}
+Damit wir eine Codierung durch Base64 möglich ist, muss der encoder initalisiert werden. Im Anschluss wird dem encoder das StringByte \textbf{"os"} mit der Funktion \textbf{encodeToString()} übergeben und als neuen String gespeichert.
+\begin{lstlisting}
+Base64.Encoder encoder = Base64.getEncoder ();
+String message = encoder.encodeToString(os.toByteArray ());
+\end{lstlisting}
+Die erste Ausgabe zeigt den Klartext an. Die zweite Ausgabe gibt den verschlüsselten Text wieder.
+\begin{lstlisting}
+System.out.println("Plain text.: " + p_text);
+System.out.println("Message....: " + message);
+\end{lstlisting}
+Der Rückgabewert der Methode ist die nun \textbf{verschlüsselte Nachricht}.
+\begin{lstlisting}
+return message;
+\end{lstlisting}
+
+Falls hierbei etwas schief gehen sollte, wird durch den try-catch-Block die Fehlermeldung abgefangen, eine Ausgabe ausgegeben und durch \textbf{"return null"} das Programm beendet.
+\begin{lstlisting}
+} catch (NoSuchAlgorithmException | NoSuchPaddingException | 
+    InvalidKeyException | InvalidAlgorithmParameterException | 
+    IllegalBlockSizeException | BadPaddingException | 
+                                            IOException e) {
+	System.out.println("Fehler beim verschlüsseln!");
+	return null;
+}
+\end{lstlisting}
+\newpage
+
+\subsection{Methode - decrypt(String encrypted, String key)}
+Um eine Entschlüsselung eines verschlüsselten Textes durchzuführen, wird der \textbf{Verschlüsselte Text}, und der dazu \textbf{verwendete Schlüssel} benötigt.
+\begin{lstlisting}
+public String decrypt(String encrypted, String key) {
+\end{lstlisting}
+Auch hier wird zunächst der Schlüssel erstellt mit \textbf{SecretKeySpec}.
+\begin{lstlisting}
+SecretKeySpec keySpec =  new SecretKeySpec(key.getBytes(),"AES");
+\end{lstlisting}
+Im Anschluss wird der \textbf{Base64.Decoder} initialisiert und ein Byte-Array der Länge 16 benötigt.
+\begin{lstlisting}
+Base64.Decoder decoder = Base64.getDecoder();
+byte[] iv = new byte[16];
+\end{lstlisting}
+Mithilfe der \textbf{decode} Methode wird der verschlüsselte Text dekodiert.
+\begin{lstlisting}
+byte[] dec = decoder.decode(encrypted);
+\end{lstlisting}
+Um nun alle Bytes in den Initialisierungsvektor zu schreiben, wird eine for-Schleife verwendet. Die Schleife soll jedes Feld des Arrays \textbf{iv} mit den Werten von \textbf{dec} beschreiben (16 Felder).
+\begin{lstlisting}
+for(int i=0; i < 16; i++) {	
+	iv[i] = dec[i];
+}
+\end{lstlisting}
+Im Anschluss wird dem Cipher Objekt die Instanz des CBC-Mode übergeben: ”AES/CBC/PKCS5Padding”.
+\begin{lstlisting}
+IvParameterSpec ivSpec = new IvParameterSpec(iv);
+Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+cipher.init(Cipher.DECRYPT_MODE, keySpec, ivSpec);
+\end{lstlisting}
+Da wir entschlüsseln möchten, wird der \textbf{DECRYPT\_MODE} (Entschlüsselungsmodus) verwendet. \\
+Der entschlüsselte Text wird dem Cipher Objekt mit der Funktion \textbf{do.Final} übergeben. Der Text wird nun in einer Aktion in einem Byte-Array gespeichert. 
+\begin{lstlisting}
+byte[] plain = cipher.doFinal(dec);
+\end{lstlisting}
+Das Array wird als nächstes in einen String konvertiert, eine Ausgabe erfolgt und wird als Rückgabeparameter zurückgegeben.
+\begin{lstlisting}
+String org_text = new String(plain).substring(16);
+System.out.println("Original Text: " + org_text);
+return org_text;
+\end{lstlisting}
+\newpage
+Falls hierbei etwas schief gehen sollte, wird durch den try-catch-Block die Fehlermeldung abgefangen, eine Ausgabe ausgegeben und durch \textbf{"return null"} das Programm beendet.
+\begin{lstlisting}
+} catch (NoSuchAlgorithmException | NoSuchPaddingException | 
+         InvalidKeyException | 
+         InvalidAlgorithmParameterException |
+         IllegalBlockSizeException |
+	     BadPaddingException e) {
+	System.out.println("Fehler beim entschlüsseln!");	
+	return null;
+}
+\end{lstlisting}
+
+\subsection{Methode - generate\_Key()}
+Um einen Zufallsschlüssel zu generieren, wird die Klasse \textbf{SecureRandom} verwendet. Es wird zunächst ein neues Objekt \textbf{random} und ein \textbf{16-Byte-Array} erstellt.
+\begin{lstlisting}
+SecureRandom random = new SecureRandom();
+byte[] bytes = new byte[16]; 
+\end{lstlisting}
+Durch \textbf{next.Bytes} werden die Zufallszahlen von \textbf{random} in das Array geschrieben.
+\begin{lstlisting}
+random.nextBytes(bytes);
+\end{lstlisting}
+Um nun die Werte verwenden zu können, müssen die Werte in einen String konvertiert werden.
+\begin{lstlisting}
+String new_key = new String(bytes);
+\end{lstlisting}
+Nach der Konvertierung wird der String zurückgegeben, und wir haben einen Zufallsschlüssel generiert.
+\begin{lstlisting}
+return new_key;
+\end{lstlisting}
+\newpage
+
+\subsection{Methode - main(String[] args)}
+In der Main Methode wird die Instanz der Klasse erstellt, dadurch können die Methoden innerhalb der Klasse verwendet werden.
+\begin{lstlisting}
+aes aes = new aes();
+\end{lstlisting}
+Als Schlüssel wird hier ein zufällig Generierter Schlüssel verwendet.
+\begin{lstlisting}
+String random_key = aes.generate_Key();
+\end{lstlisting}
+Um nun zu verschlüsseln, muss die Methode mit einem Schlüssel und einem Text aufgerufen werden. Als Text wird die lokale deklarierte Variable \textbf{plainText} verwendet. 
+\begin{lstlisting}
+private static String plainText = 
+                    "Dies ist eine streng geheime Nachricht!!!";
+String encryptedString = aes.encrypt(plainText, random_key);
+\end{lstlisting}
+Für die Entschlüsslung wird die Prüfsumme und der zum verschlüsseln verwendete Schlüssel verwendet.
+\begin{lstlisting}
+aes.decrypt(encryptedString, random_key);
+\end{lstlisting}
+\newpage
+
+\section{Teil 3: Asymmetrische Verschlüsselung}
+\subsection{Erklären der Verschlüsselung}
+
+Im Unterschied zur symmetrischen Verschlüsselung, wird bei der asymmetrischen Verschlüsselung mit unterschiedlichen Schlüsseln ver- bzw. entschlüsselt. \\
+Möchte beispielsweise Alice eine verschlüsselte Nachricht an Bob senden, benötigt Alice den öffentlichen Schlüssel von Bob. Mit diesem verschlüsselt sie dann den Geheimtext und sendet ihn an Bob.\\
+Bob kann diesen Text dann mit seinem privaten Schlüssel, der auf seinem Client verbleibt entschlüsseln und lesen. \\
+Um also eine asymmetrische Verschlüsselung selbst durchzuführen, müssen wir uns ein solches Schlüsselpaar (bestehend aus öffentlichem und privatem Schlüssel, nachfolgend \textbf{pubKey} und \textbf{privKey} genannt) erzeugen.
+
+
+\subsection{Implementierung - Konstruktor}
+
+Die Klasse rsa.java besitzt zwei Objektvariablen, um pubKey sowie privKey nach Erzeugung abzuspeichern. \\ Außerdem haben wir den zu verschlüsselnden String "\textbf{Kryptographie macht immer noch Spass!!!}" hardcoded als Klassenkonstante abgespeichert, dies wäre auch dynamisch als User-Eingabe denkbar. \\ 
+
+\begin{lstlisting}
+public rsa() throws NoSuchAlgorithmException
+\end{lstlisting}
+
+Der Konstruktor der Klasse erhält keine Übergabeparameter und wirft eine \textbf{NoSuchAlgorithmException} (wird von der getInstance() Methode der Klasse KeyPairGenerator geworfen).
+
+Wir setzen hier zunächst die Schlüssellänge für das RSA Verfahren auf die vom BSI empfohlene Schlüssellänge. Bis Ende 2022 sind das 2000 Bit.
+
+\begin{lstlisting}
+    int keysize = 2000;
+\end{lstlisting}
+
+Nachfolgend wird ein Objekt der Klasse KeyPairGenerator erstellt und die Instanz auf RSA gesetzt. Diese Klasse benötigen wir, um das RSA-Schlüsselpaar zu generieren.
+
+\begin{lstlisting}
+    KeyPairGenerator keyPairGen;
+    keyPairGen = KeyPairGenerator.getInstance("RSA");
+\end{lstlisting}
+
+Der Schlüsselpaargenerator wird mit der vorher spezifizierten Schlüssellänge initialisiert und es wird ein KeyPair erzeugt.
+
+\begin{lstlisting}
+    keyPairGen.initialize(keysize);
+    KeyPair rsaKeyPair = keyPairGen.generateKeyPair();
+\end{lstlisting}
+
+Die beiden Schlüssel aus dem KeyPair speichern wir entsprechend in den Objektvariablen publicKey und privateKey.
+
+\begin{lstlisting}
+    this.publicKey = rsaKeyPair.getPublic();
+    this.privateKey = rsaKeyPair.getPrivate();
+\end{lstlisting}
+
+
+\subsection{Methode - encrypt}
+
+Nachdem nun ein Objekt der Klasse rsa erstellt wurde, kann auf diesem Objekt die eigentliche Verschlüsselung mit der Methode \textbf{encrypt} durchgeführt werden.
+
+\begin{lstlisting}
+    public String encrypt(String plainText)
+        throws NoSuchPaddingException,
+            NoSuchAlgorithmException,
+            InvalidKeyException,
+            BadPaddingException,
+            IllegalBlockSizeException
+\end{lstlisting}
+
+Übergabeparameter: String, der verschlüsselt werden soll \\
+Rückgabeparameter: Verschlüsselter String \\
+
+Die diversen Exceptions werden von den einzelnen Methoden innerhalb von \textbf{encrypt} geworfen und hängen deswegen am Methodenkopf. \\
+
+Nun wird ein Objekt "rsa" der Klasse Cipher erstellt und der Modus dieses Objekts auf RSA gesetzt.
+
+\begin{lstlisting}
+    Cipher rsa;
+    rsa = Cipher.getInstance("RSA");
+\end{lstlisting}
+
+Der Cipher wird nun mit dem vorher erzeugten pubKey im Verschlüsselungsmodus (ENCRYPT\_MODE) initialisiert.
+
+\begin{lstlisting}
+    rsa.init(Cipher.ENCRYPT_MODE, publicKey);
+\end{lstlisting}
+
+Wir definieren uns ein leeres byte-Array "cipherText".
+Anschließend führen wir die eigentliche Verschlüsselung durch, indem wir die Methode doFinal() mit dem zu verschlüsselnden String in Byteform aufrufen und den Rückgabewert der Methode in "cipherText" speichern.
+
+\begin{lstlisting}
+    byte[] cipherText;
+    cipherText = rsa.doFinal(plainText.getBytes());
+\end{lstlisting}
+
+Der verschlüsselte Text in byte-Form wird abschließend noch Base64 kodiert und dann an die aufrufende Methode zurückgegeben.
+
+\begin{lstlisting}
+    Base64.Encoder encoder = Base64.getEncoder();
+    return encoder.encodeToString(cipherText);
+\end{lstlisting}
+
+
+\newpage
+
+
+
+\subsection{Methode - decrypt}
+
+Ein RSA-verschlüsselter Text kann nun mit der gleichen Instanz mit der verschlüsselt wurde (andernfalls passt der key nicht) wieder entschlüsselt werden und zwar mit Hilfe der decrypt Methode.
+
+\begin{lstlisting}
+    private String decrypt(String encryptedText)
+        throws NoSuchAlgorithmException,
+            NoSuchPaddingException,
+            InvalidKeyException,
+            IllegalBlockSizeException,
+            BadPaddingException
+\end{lstlisting}
+
+Übergabeparameter: String, der entschlüsselt werden soll \\
+Rückgabeparameter: Entschlüsselter String \\
+
+Die diversen Exceptions werden von den einzelnen Methoden innerhalb von \textbf{decrypt} geworfen und hängen deswegen am Methodenkopf. \\
+
+Nun wird ein Objekt "rsa" der Klasse Cipher erstellt und der Modus dieses Objekts auf RSA gesetzt.
+
+\begin{lstlisting}
+    Cipher rsa;
+    rsa = Cipher.getInstance("RSA");
+\end{lstlisting}
+
+Da der verschlüsselte Text gemäß Vorgabe in Base64-Kodierung vorliegt, muss dieser zunächst dekodiert und in einem byte-Array "cipherText" gespeichert werden.
+
+\begin{lstlisting}
+    Base64.Decoder decoder = Base64.getDecoder();
+    byte[] cipherText = decoder.decode(encryptedText);
+\end{lstlisting}
+
+Der Cipher wird nun mit dem vorher erzeugten privKey im Entschlüsselungsmodus (DECRYPT\_MODE) initialisiert.
+
+\begin{lstlisting}
+    rsa.init(Cipher.DECRYPT_MODE, privateKey);
+\end{lstlisting}
+
+Abschließend führen wir die eigentliche Entschlüsselung durch, indem wir die Methode doFinal() mit dem zu entschlüsselnden String in Byteform aufrufen und den Rückgabewert der Methode in "cipherText" speichern.
+
+\begin{lstlisting}
+    cipherText = rsa.doFinal(cipherText);
+\end{lstlisting}
+
+Mit diesem byte-Array wird ein neuer String erzeugt, der jetzt die entschlüsselte Nachricht enthält, und an die aufrufende Methode zurückgegeben.
+
+\begin{lstlisting}
+    return new String(cipherText);
+\end{lstlisting}
+
+\newpage
+
+\subsection{Methode - main}
+
+Um die Funktionalität des Programms zu testen, bzw. den eigentlichen Verschlüsselungsmodus anschaulich darzustellen haben wir eine ausführbare main-Methode hinzugefügt.\\ \\
+In dieser erzeugen wir ein Objekt der Klasse rsa, rufen also den Konstruktor auf und generieren somit unser keyPair.
+
+\begin{lstlisting}
+    rsa rsa = new rsa();
+\end{lstlisting}
+
+Auf der Kommandozeile werden nacheinander der zu verschlüsselnde String (abgespeichert als Klassenkonstante "plainText"), der verschlüsselte plainText und der entschlüsselte cipherText ausgegeben.
+
+\begin{lstlisting}
+    System.out.println("Plain Text:    " + plainText);
+    System.out.println("Verschlüsselt: " + rsa.encrypt(plainText));
+    System.out.println("Entschlüsselt: "
+        + rsa.decrypt(rsa.encrypt(plainText)));
+\end{lstlisting}
+
+Um gerade bei längeren Strings nicht händisch überprüfen zu müssen, ob der "rsa-verarbeitete" String gleich dem originalen plainText ist, haben wir noch eine .equals() Abfrage eingebaut, die bei erfolgreichem Ausführen \textbf{true} ausgibt.
+
+\begin{lstlisting}
+    System.out.print("plainText und verschlüsselter
+        -> entschlüsselter Text gleich : ");
+    System.out.println(plainText.equals(
+            rsa.decrypt(rsa.encrypt(plainText))
+        ));
+\end{lstlisting}
+
+
+
+
+\newpage
+
+\section{Teil 4: Digitale Signatur}
+
+\subsection{Erklären des Signaturvorgangs}
+
+Folgendes Szenario:
+Alice möchte Bob eine Nachricht schicken. Bob möchte überprüfen können, ob die Nachricht auf dem Weg verfälscht, ausgetauscht oder beschädigt wurde. Wie machen wir das ? \\
+Die Lösung lautet: Alice muss die Nachricht signieren.\\
+Dafür muss Alice von der Nachricht einen Hash erstellen und diesen mit ihrem privateKey verschlüsseln. Alice schickt dann diesen verschlüsselten Hash zusammen mit Ihrer Nachricht an Bob. \\
+Bob entschlüsselt nun den hash mit Alice' öffentlichem Schlüssel, verifiziert also somit, dass die Nachricht von ihr kommt (Nur Alice verfügt über ihren privaten Schlüssel). \\
+Anschließend hasht Bob über die Nachricht und vergleicht den entstandenen Hash mit dem erhaltenen, entschlüsselten. Sind beide hashes gleich, weiß Bob, dass die Nachricht nicht verändert oder beschädigt wurde.
+
+\subsection{Implementierung - Konstruktor}
+
+Da wir in diesem Beispiel mit Hilfe des RSA Verfahrens signieren sollen, haben wir uns dazu entschlossen, die Klasse \textbf{SHA256withRSA} als Unterklasse von \textbf{rsa.java} zu implementieren. \\
+Aus diesem Grund ist unser Konstruktor auch vergleichsweise klein. Wir rufen hier lediglich den Konstruktor der Oberklasse auf um das Schlüsselpaar zu generieren und setzen den Signaturmodus des Signatur Objekts "rsa" auf "SHA256withRSA". Das Signaturobjekt wird als Instanzvariable abgespeichert. \\
+\textbf{NoSuchAlgorithmException} kann von \textbf{.getInstance()} geworfen werden und ist deswegen wieder im Methodenkopf deklariert.
+
+\begin{lstlisting}
+    public SHA256withRSA() throws NoSuchAlgorithmException {
+        super();
+        rsa = Signature.getInstance("SHA256withRSA");
+    }
+\end{lstlisting}
+
+\newpage
+
+\subsection{Methode - sign}
+
+Die Methode \textbf{sign()} führt die Signatur eines Strings durch.
+
+\begin{lstlisting}
+    public String sign(String plainText)
+        throws SignatureException,
+        InvalidKeyException
+\end{lstlisting}
+
+Übergabeparamter: String, der signiert werden soll\\
+Rückgabeparameter: Verschlüsselter Hash über den String\\
+
+Die diversen Exceptions werden von den einzelnen Methoden innerhalb von \textbf{sign} geworfen und hängen deswegen am Methodenkopf.
+
+Als erstes wird nun der vorher erzeugte privKey der Oberklasse an "rsa" übergeben und damit dem Objekt mitgeteilt, dass es mit diesem privKey signieren soll.
+
+\begin{lstlisting}
+    rsa.initSign(super.privateKey);
+\end{lstlisting}
+
+Anschließend erstellen wir ein leeres byte-Array, in dem der Rückgabewert der \textbf{rsa.sign()} Methode gespeichert werden soll. Mit der Methode \textbf{rsa.update()} übergeben wir den zu signierenden String in Byteform an das Signaturobjekt "rsa".\\
+\textbf{rsa.sign} führt nun die eigentliche Signatur durch und gibt uns den hash in Byteform zurück, welchen wir in "signature" abspeichern.
+
+\begin{lstlisting}
+    byte[] signature;
+    rsa.update(plainText.getBytes());
+    signature = rsa.sign();
+\end{lstlisting}
+
+Dieses byte-Array wird abschließend gemäß Vorgabe als Base64 kodierter String an die aufrufende Methode zurückgegeben.
+
+\begin{lstlisting}
+    Base64.Encoder encoder = Base64.getEncoder();
+    return encoder.encodeToString(signature);
+\end{lstlisting}
+
+\newpage
+
+\subsection{Methode - verify}
+
+Die Methode \textbf{verify} führt die Verifikation einer Signatur eines Strings durch.
+
+\begin{lstlisting}
+    public boolean verify(String plainText, String signature)
+            throws InvalidKeyException, SignatureException
+\end{lstlisting}
+
+Übergabeparameter \textbf{plainText}: String, der signiert wurde\\
+Übergabeparameter \textbf{signature}: Signatur, die überprüft werden soll
+Rückgabeparameter: Angabe, ob die Signatur für den übergebenen String gültig ist\\
+
+Die diversen Exceptions werden von den einzelnen Methoden innerhalb von \textbf{verify} geworfen und hängen deswegen am Methodenkopf.
+
+Als erstes wird der Base64-kodierte Signatur-hash (siehe Vorgabe) dekodiert und in einem byte-Array "decSignature" gespeichert.
+
+\begin{lstlisting}
+    Base64.Decoder decoder = Base64.getDecoder();
+    byte[] decSignature = decoder.decode(signature);
+\end{lstlisting}
+
+Anschließend wird der vorher erzeugte pubKey der Oberklasse an "rsa" übergeben und damit dem Objekt mitgeteilt, dass es mit diesem pubKey die Verifizierung der Signatur initialisieren soll.
+
+\begin{lstlisting}
+    rsa.initVerify(super.publicKey);
+\end{lstlisting}
+
+Mit der Methode \textbf{rsa.update()} übergeben wir den plainText String in Byteform an das Signaturobjekt "rsa".
+
+\begin{lstlisting}
+    rsa.update(plainText.getBytes());
+\end{lstlisting}
+
+\textbf{rsa.verify} führt nun die eigentliche Verifizierung durch und gibt uns true zurück, wenn die Verifizierung erfolgreich war, andernfalls false.\\
+Diesen boolean geben wir abschließend an die aufrufende Methode zurück.
+
+\begin{lstlisting}
+    return rsa.verify(decSignature);
+\end{lstlisting}
+
+\newpage
+
+\subsection{Methode - main}
+
+Um die Funktionalität des Programms zu testen, bzw. den eigentlichen Signaturvorgang anschaulich darzustellen haben wir eine ausführbare main-Methode hinzugefügt.\\ \\
+In dieser erzeugen wir ein Objekt der Klasse SHA256withRSA, rufen also den Konstruktor auf, generieren somit unser keyPair und setzen den Modus auf "SHA256withRSA" (siehe 4.2).
+
+\begin{lstlisting}
+    SHA256withRSA sha = new SHA256withRSA();
+\end{lstlisting}
+
+Auf der Kommandozeile werden nacheinander der zu signierende String (abgespeichert als Klassenkonstante "plainText"), die Signatur von plainText und der boolean, ob die Verifizierung erfolgreich war ausgegeben.
+
+\begin{lstlisting}
+    System.out.println("Plain Text:    " + plainText);
+    System.out.println("Signatur:      " + sha.sign(plainText));
+    System.out.println("Verifiziert:   "
+        + sha.verify(plainText, sha.sign(plainText)));
+\end{lstlisting}
+
+
+
+\end{document}
+
+%%% Local Variables: 
+%%% TeX-PDF-mode: t
+%%% TeX-master: t
+%%% coding: utf-8
+%%% mode: latex
+%%% TeX-engine: xetex
+%%% End:
